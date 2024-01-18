@@ -9,13 +9,14 @@ import android.content.IntentFilter
 import android.hardware.usb.UsbManager
 import android.os.Build
 import android.os.Bundle
+import android.text.method.ScrollingMovementMethod
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import org.techtown.unsserialport.databinding.ActivityMainBinding
-import java.text.SimpleDateFormat
-import java.util.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
@@ -35,10 +36,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        initButton()
+        initView()
     }
 
-    private fun initButton() = with(binding) {
+    private fun initView() = with(binding) {
+        resultText.movementMethod = ScrollingMovementMethod()
+
         connectButton.setOnClickListener { connect() }
         disconnectButton.setOnClickListener { disconnect() }
         openButton.setOnClickListener { commandSerial("open") }
@@ -91,20 +94,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun commandSerial(command: String) {
         val method = Thread.currentThread().stackTrace[2].methodName
-        printLog("$method called.")
+        printLog("$method called. command: $command")
 
         if (!::port.isInitialized) return
         try {
             port.write(command.toByteArray(), 1500)
-            printLog("The command [$command] was executed successfully.")
+            printLog("[$command] was executed successfully.")
         } catch (e: Exception) {
             printLog("$method failed: $command failed")
         }
     }
 
     private fun printLog(message: String) = runOnUiThread {
-        @SuppressLint("SimpleDateFormat")
-        val now = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
+        val formatter = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss")
+        val now = LocalDateTime.now().format(formatter)
         val log = "[$now] $message"
         if (AppData.logList.size > 1000) AppData.logList.removeAt(1)
         AppData.logList.add(log)

@@ -116,4 +116,8 @@
         android:layout_marginHorizontal="20dp"
         tools:text="결과값 보여주는 곳" />
 
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="20dp" />
+
 </LinearLayout>
