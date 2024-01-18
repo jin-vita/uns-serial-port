@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter
 class MainActivity : AppCompatActivity() {
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
     private val tag: String = javaClass.simpleName
-    private lateinit var port: UsbSerialPort
+    private var port: UsbSerialPort? = null
     private val usbReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (AppData.ACTION_USB_PERMISSION != intent.action) return
@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         AppData.debug(tag, "onDestroy called.")
-        if (::port.isInitialized) port.close()
+        port?.close()
         super.onDestroy()
     }
 
@@ -91,8 +91,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         port = driver.ports[0] // Most devices have just one port (port 0)
-        port.open(connection)
-        port.setParameters(9600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+        port?.open(connection)
+        port?.setParameters(9600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
         printLog("It has been successfully connected.")
         if (!isConnected) binding.statusText.text = method
         isConnected = true
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
         val method = Thread.currentThread().stackTrace[2].methodName
         printLog("$method called.")
         command("close")
-        port.close()
+        port?.close()
         binding.statusText.text = method
         isConnected = false
     }
@@ -112,9 +112,8 @@ class MainActivity : AppCompatActivity() {
         AppData.debug(tag, "$method called. command: $command")
         printLog("$method called. command: $command")
 
-        if (!::port.isInitialized) return
         try {
-            port.write(command.toByteArray(), 1500)
+            port?.write(command.toByteArray(), 1500)
             printLog("[$command] was executed successfully.")
             binding.statusText.text = command
         } catch (e: Exception) {
