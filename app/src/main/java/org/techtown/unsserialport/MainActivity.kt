@@ -31,7 +31,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    private var isConnected = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         AppData.debug(tag, "onDestroy called.")
         port?.close()
+        port = null
         super.onDestroy()
     }
 
@@ -62,6 +62,11 @@ class MainActivity : AppCompatActivity() {
     private fun connect() {
         val method = Thread.currentThread().stackTrace[2].methodName
         printLog("$method called.")
+        
+        if (port != null) {
+            printLog("Already ${method}ed.")
+            return
+        }
 
         val permissionIntent = PendingIntent.getBroadcast(
             this,
@@ -94,23 +99,30 @@ class MainActivity : AppCompatActivity() {
         port?.open(connection)
         port?.setParameters(9600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
         printLog("It has been successfully connected.")
-        if (!isConnected) binding.statusText.text = method
-        isConnected = true
+        binding.statusText.text = method
     }
 
     private fun disconnect() {
         val method = Thread.currentThread().stackTrace[2].methodName
         printLog("$method called.")
-        command("close")
-        port?.close()
+        if (port != null) {
+            command("close")
+            port?.close()
+            port = null
+            printLog("Just ${method}ed.")
+        } else printLog("Already ${method}ed.")
         binding.statusText.text = method
-        isConnected = false
     }
 
     private fun command(command: String) {
         val method = Thread.currentThread().stackTrace[2].methodName
         AppData.debug(tag, "$method called. command: $command")
         printLog("$method called. command: $command")
+
+        if (port == null) {
+            printLog("The port is not initialized.")
+            return
+        }
 
         try {
             port?.write(command.toByteArray(), 1500)
