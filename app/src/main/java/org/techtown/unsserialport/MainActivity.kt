@@ -40,6 +40,12 @@ class MainActivity : AppCompatActivity() {
         initView()
     }
 
+    override fun onDestroy() {
+        AppData.debug(tag, "onDestroy called.")
+        if (::port.isInitialized) port.close()
+        super.onDestroy()
+    }
+
     private fun initView() = with(binding) {
         val method = Thread.currentThread().stackTrace[2].methodName
         AppData.debug(tag, "$method called. SDK: ${Build.VERSION.SDK_INT}")
@@ -87,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         port = driver.ports[0] // Most devices have just one port (port 0)
         port.open(connection)
         port.setParameters(9600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
-        printLog("The serial port has been successfully connected.")
+        printLog("It has been successfully connected.")
         if (!isConnected) binding.statusText.text = method
         isConnected = true
     }
@@ -103,6 +109,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun command(command: String) {
         val method = Thread.currentThread().stackTrace[2].methodName
+        AppData.debug(tag, "$method called. command: $command")
         printLog("$method called. command: $command")
 
         if (!::port.isInitialized) return
