@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">UnsSerialPort</string>
+
+    <string name="connect">connect</string>
+    <string name="disconnect">disconnect</string>
+    <string name="open">open</string>
+    <string name="close">close</string>
+    <string name="result">result</string>
+    <string name="status">status :</string>
 </resources>

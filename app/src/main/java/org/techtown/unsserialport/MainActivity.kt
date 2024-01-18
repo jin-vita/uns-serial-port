@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    private var isConnected = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,18 +41,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initView() = with(binding) {
+        val method = Thread.currentThread().stackTrace[2].methodName
+        AppData.debug(tag, "$method called. SDK: ${Build.VERSION.SDK_INT}")
+
         resultText.movementMethod = ScrollingMovementMethod()
 
         connectButton.setOnClickListener { connect() }
         disconnectButton.setOnClickListener { disconnect() }
-        openButton.setOnClickListener { commandSerial("open") }
-        closeButton.setOnClickListener { commandSerial("close") }
+        openButton.setOnClickListener { command("open") }
+        closeButton.setOnClickListener { command("close") }
     }
 
     @SuppressLint("InlinedApi")
     private fun connect() {
         val method = Thread.currentThread().stackTrace[2].methodName
-        printLog("$method called. SDK: ${Build.VERSION.SDK_INT}")
+        printLog("$method called.")
 
         val permissionIntent = PendingIntent.getBroadcast(
             this,
@@ -84,15 +88,20 @@ class MainActivity : AppCompatActivity() {
         port.open(connection)
         port.setParameters(9600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
         printLog("The serial port has been successfully connected.")
+        if (!isConnected) binding.statusText.text = method
+        isConnected = true
     }
 
     private fun disconnect() {
         val method = Thread.currentThread().stackTrace[2].methodName
         printLog("$method called.")
+        command("close")
         port.close()
+        binding.statusText.text = method
+        isConnected = false
     }
 
-    private fun commandSerial(command: String) {
+    private fun command(command: String) {
         val method = Thread.currentThread().stackTrace[2].methodName
         printLog("$method called. command: $command")
 
@@ -100,6 +109,7 @@ class MainActivity : AppCompatActivity() {
         try {
             port.write(command.toByteArray(), 1500)
             printLog("[$command] was executed successfully.")
+            binding.statusText.text = command
         } catch (e: Exception) {
             printLog("$method failed: $command failed")
         }
