@@ -5,8 +5,9 @@ import android.util.Log
 import android.widget.Toast
 
 object AppData {
-    const val ACTION_USB_PERMISSION = "org.techtown.serial.USB_PERMISSION"
     val logList by lazy { mutableListOf<String>() }
+
+    const val ACTION_USB_PERMISSION = "org.techtown.serial.USB_PERMISSION"
 
     var isDebug = true
     fun debug(tag: String, msg: String) {
